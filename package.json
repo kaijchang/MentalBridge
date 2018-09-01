@@ -1,0 +1,23 @@
+{
+  "name": "bridge",
+  "version": "0.1.0",
+  "description": "Bridge over Socket.io",
+  "main": "shuffle.js",
+  "scripts": {
+    "start": "node ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kajchang/bridge.git"
+  },
+  "author": "Kai Chang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kajchang/bridge/issues"
+  },
+  "homepage": "https://github.com/kajchang/bridge#readme",
+  "dependencies": {
+    "lodash.shuffle": "^4.2.0",
+    "mental-poker": "^1.0.0"
+  }
+}
