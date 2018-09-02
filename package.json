@@ -1,27 +1,28 @@
 {
-  "name": "bridge",
+  "name": "mental-bridge",
   "version": "0.1.0",
   "description": "Bridge over Socket.io",
   "main": "app/app.js",
   "scripts": {
     "start": "node .",
-    "browserify": "browserify app/main.js | uglifyjs > app/scripts/mentalpoker.min.js"
+    "bundle": "browserify app/client.js | uglifyjs > app/scripts/mentalpoker.min.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kajchang/bridge.git"
+    "url": "git+https://github.com/kajchang/mental-bridge.git"
   },
   "author": "Kai Chang",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/kajchang/bridge/issues"
+    "url": "https://github.com/kajchang/mental-bridge/issues"
   },
-  "homepage": "https://github.com/kajchang/bridge#readme",
+  "homepage": "https://github.com/kajchang/mental-bridge#readme",
   "dependencies": {
     "express": "^4.16.3",
     "lodash.shuffle": "^4.2.0",
     "mental-poker": "^1.0.0",
-    "socket.io": "^2.1.1"
+    "socket.io": "^2.1.1",
+    "socket.io-client": "^2.1.1"
   },
   "devDependencies": {
     "browserify": "^16.2.2",
