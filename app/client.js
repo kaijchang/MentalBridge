@@ -2,13 +2,22 @@ const mp = require("mental-poker");
 const shuffle = require("lodash.shuffle");
 const io = require("socket.io-client");
 const $ = require("jquery-browserify");
-const arrayBufferToBuffer = require('arraybuffer-to-buffer');
+const arrayBufferToBuffer = require("arraybuffer-to-buffer");
+
+let deck;
 
 const nextCardinals = {
 	"North": "East",
 	"East": "South",
 	"South": "West",
 	"West": "North"
+}
+
+const players = {
+	"North": {},
+	"East": {},
+	"South": {},
+	"West": {}
 }
 
 const socket = io.connect();
@@ -52,29 +61,28 @@ socket.on("positions", msg => {
 });
 
 socket.on("start", () => {
-	self = mp.createPlayer(mp.createConfig(52));
-	socket.emit("codeWords", self.cardCodewordFragments);
+	self_ = mp.createPlayer(mp.createConfig(52));
 
-	assembledCodeWords = [];
+	socket.emit("codeWords", self_.cardCodewordFragments);
 
 	status = "Assembling CodeWords";
 	console.log("Assembling CodeWords!");
-});
 
-socket.on("codeWords", codeWords => {
-	if (status == "Assembling CodeWords") {
-		const codeWordBuffer = codeWords.map(codeWord => arrayBufferToBuffer(codeWord));
-
-		console.log(codeWordBuffer);
-		assembledCodeWords.push(codeWordBuffer);
-
-		if (assembledCodeWords.length == 4) {
-			assembledCodeWords = mp.createDeck(assembledCodeWords);
-			deck = assembledCodeWords;
-
-			status = "Shuffling";
-			console.log(deck);
-			console.log("Shuffling!");
+	socket.on("codeWords", msg => {
+		if (status == "Assembling CodeWords") {
+			const codeWordBuffer = msg[0].map(codeWord => arrayBufferToBuffer(codeWord));
+	
+			players[msg[1]]["codeWords"] = codeWordBuffer;
+	
+			console.log(codeWordBuffer);
+	
+			if (Object.keys(players).filter(player => players[player]["codeWords"] !== undefined).length == 4) {
+				deck = mp.createDeck(Object.keys(players).map(player => players[player]["codeWords"]));
+	
+				status = "Shuffling";
+				console.log("Shuffling!");
+				console.log(deck);
+			}
 		}
-	}
+	});
 });

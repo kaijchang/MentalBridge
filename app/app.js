@@ -42,7 +42,7 @@ io.on("connection", socket => {
 			});
 
 			socket.on("codeWords", codeWords => {
-				io.to("players").emit("codeWords", codeWords);
+				io.to("players").emit("codeWords", [codeWords, playerPosition]);
 			});
 
 			if (Object.keys(players).length == 4) {

@@ -2,7 +2,7 @@ html, body {
 	height: 100%;
 }
 
-h5.card-header {
+.card-header {
 	text-align: center;
 }
 

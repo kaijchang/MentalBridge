@@ -4,6 +4,8 @@ Purely educational Mental Bridge using a [mental poker library](https://github.c
 
 This project uses a NodeJS server to synchronize the players and relay the messages, but the server never holds secure information.
 
+The game has no resistance against malicious players sending malformed messages or players dropping out of the game, because only that player has the keys for their cards, so no other player can pick them up and continue play.
+
 ## Installation
 
 Cloning this repository:
