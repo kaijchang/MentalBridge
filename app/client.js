@@ -4,7 +4,13 @@ const io = require("socket.io-client");
 const $ = require("jquery-browserify");
 const arrayBufferToBuffer = require("arraybuffer-to-buffer");
 
+const socket = io.connect();
+
+// Game Variables
+
 let deck;
+let playerPosition;
+let playerToShuffle;
 
 const nextCardinals = {
 	"North": "East",
@@ -20,7 +26,7 @@ const players = {
 	"West": {}
 }
 
-const socket = io.connect();
+const config = mp.createConfig(52);
 
 var status = "Waiting for Players";
 
@@ -57,11 +63,12 @@ socket.on("positions", msg => {
 
 	if (msg[1] !== null) {
 		$("#" + msg[1] + " > .card-header").html('<i class="fas fa-user"></i> Me - ' + msg[1]);
+		playerPosition = msg[1];
 	}
 });
 
 socket.on("start", () => {
-	self_ = mp.createPlayer(mp.createConfig(52));
+	self_ = mp.createPlayer(config);
 
 	socket.emit("codeWords", self_.cardCodewordFragments);
 
@@ -82,6 +89,33 @@ socket.on("start", () => {
 				status = "Shuffling";
 				console.log("Shuffling!");
 				console.log(deck);
+	
+				playerToShuffle = "North";
+				var shuffles = 0;
+	
+				socket.on("deck", msg => {
+					if (msg[1] == playerToShuffle && status == "Shuffling") {
+						deck = msg[0].map(card => arrayBufferToBuffer(card));
+
+						playerToShuffle = nextCardinals[msg[1]];
+
+						shuffles++;
+
+						if (shuffles != 4 && playerToShuffle == playerPosition) {
+							deck = mp.encryptDeck(shuffle(deck), self_.keyPairs[config.cardCount].privateKey);
+							socket.emit("shuffledDeck", deck);
+						} else if (shuffles == 4) {
+							status = "Locking";
+							console.log("Locking!");
+							console.log(deck);
+						}
+					}
+				});
+
+				if (playerToShuffle == playerPosition) {
+					deck = mp.encryptDeck(shuffle(deck), self_.keyPairs[config.cardCount].privateKey);
+					socket.emit("shuffledDeck", deck);
+				}
 			}
 		}
 	});

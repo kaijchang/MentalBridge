@@ -45,6 +45,10 @@ io.on("connection", socket => {
 				io.to("players").emit("codeWords", [codeWords, playerPosition]);
 			});
 
+			socket.on("shuffledDeck", deck => {
+				io.to("players").emit("deck", [deck, playerPosition]);
+			});
+
 			if (Object.keys(players).length == 4) {
 				io.to("players").emit("start");
 			}
