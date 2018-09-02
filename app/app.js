@@ -3,6 +3,8 @@ const app = express();
 const server = require("http").Server(app);
 const io = require("socket.io")(server);
 const path = require("path");
+var Buffer = require("buffer/").Buffer;
+
 
 const players = {};
 const positions = ["North", "East", "South", "West"];
@@ -12,6 +14,7 @@ app.use("/styles", express.static(path.join(__dirname, "styles")));
 
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
+
 io.on("connection", socket => {
 	io.in("players").clients((err, clients) => {
 		if (clients.length < 4) {
@@ -19,12 +22,13 @@ io.on("connection", socket => {
 			const availablePositions = positions.filter(position => !Object.keys(players).includes(position));
 			const playerPosition = availablePositions[Math.floor(Math.random() * availablePositions.length)];
 
-			players[playerPosition] = socket.id;
-
 			io.to("players").emit("join", playerPosition);
 			io.to("spectators").emit("join", playerPosition);
 
-			socket.emit("position", playerPosition);
+			socket.emit("positions", [Object.keys(players), playerPosition]);
+
+			players[playerPosition] = socket.id;
+
 			socket.join("players");
 
 			console.log(players);
@@ -36,7 +40,18 @@ io.on("connection", socket => {
 
 				console.log(players);
 			});
+
+			socket.on("codeWords", codeWords => {
+				io.to("players").emit("codeWords", codeWords);
+			});
+
+			if (Object.keys(players).length == 4) {
+				io.to("players").emit("start");
+			}
+
 		} else {
+			socket.emit("positions", [Object.keys(players), null]);
+
 			socket.join("spectators");
 		}
 	});

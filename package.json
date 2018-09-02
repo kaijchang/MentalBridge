@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/kajchang/mental-bridge#readme",
   "dependencies": {
+    "arraybuffer-to-buffer": "0.0.4",
+    "buffer": "^5.2.1",
     "express": "^4.16.3",
     "jquery-browserify": "^1.8.1",
     "lodash.shuffle": "^4.2.0",
