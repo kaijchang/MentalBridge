@@ -4,15 +4,19 @@ const server = require("http").Server(app);
 const io = require("socket.io")(server);
 const path = require("path");
 
+// Game Variables
 
 const players = {};
 const positions = ["North", "East", "South", "West"];
+
+// App Routes
 
 app.use("/scripts", express.static(path.join(__dirname, "scripts")));
 app.use("/styles", express.static(path.join(__dirname, "styles")));
 
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
+// Socket Events
 
 io.on("connection", socket => {
 	io.in("players").clients((err, clients) => {
@@ -40,16 +44,26 @@ io.on("connection", socket => {
 				console.log(players);
 			});
 
+			// Message Passing
+
 			socket.on("codeWords", codeWords => {
+				console.log(playerPosition + " Sending CodeWords");
 				io.to("players").emit("codeWords", [codeWords, playerPosition]);
 			});
 
 			socket.on("shuffledDeck", deck => {
+				console.log(playerPosition + " Shuffling");
 				io.to("players").emit("shuffledDeck", [deck, playerPosition]);
 			});
 
 			socket.on("lockedDeck", deck => {
+				console.log(playerPosition + " Locking");
 				io.to("players").emit("lockedDeck", [deck, playerPosition]);
+			});
+
+			socket.on("cardKeys", keys => {
+				console.log(playerPosition + " Sending Keys");
+				io.to("players").emit("cardKeys", [keys, playerPosition]);
 			});
 
 			if (Object.keys(players).length == 4) {
