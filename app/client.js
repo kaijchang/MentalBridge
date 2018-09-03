@@ -11,6 +11,7 @@ const socket = io.connect();
 let deck;
 let playerPosition;
 let playerToShuffle;
+let playerToLock;
 
 const nextCardinals = {
 	"North": "East",
@@ -93,7 +94,7 @@ socket.on("start", () => {
 				playerToShuffle = "North";
 				var shuffles = 0;
 	
-				socket.on("deck", msg => {
+				socket.on("shuffledDeck", msg => {
 					if (msg[1] == playerToShuffle && status == "Shuffling") {
 						deck = msg[0].map(card => arrayBufferToBuffer(card));
 
@@ -108,6 +109,33 @@ socket.on("start", () => {
 							status = "Locking";
 							console.log(deck);
 							console.log("Locking!");
+
+							playerToLock = "North";
+							var locks = 0;
+
+							socket.on("lockedDeck", msg => {
+								if (msg[1] == playerToLock && status == "Locking") {
+									deck = msg[0].map(card => arrayBufferToBuffer(card));
+
+									playerToLock = nextCardinals[msg[1]];
+
+									locks++;
+
+									if (locks != 4 && playerToLock == playerPosition) {
+										deck = mp.encryptDeck(deck, self_.keyPairs.map(keyPair => keyPair.privateKey));
+										socket.emit("lockedDeck", deck);
+									} else if (locks == 4) {
+										status = "Dealing";
+										console.log(deck);
+										console.log("Dealing!");
+									}
+								}
+							});
+
+							if (playerToLock == playerPosition) {
+								deck = mp.encryptDeck(deck, self_.keyPairs.map(keyPair => keyPair.privateKey));
+								socket.emit("lockedDeck", deck);
+							}
 						}
 					}
 				});

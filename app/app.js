@@ -45,7 +45,11 @@ io.on("connection", socket => {
 			});
 
 			socket.on("shuffledDeck", deck => {
-				io.to("players").emit("deck", [deck, playerPosition]);
+				io.to("players").emit("shuffledDeck", [deck, playerPosition]);
+			});
+
+			socket.on("lockedDeck", deck => {
+				io.to("players").emit("lockedDeck", [deck, playerPosition]);
 			});
 
 			if (Object.keys(players).length == 4) {
