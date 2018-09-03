@@ -1,5 +1,7 @@
 # Mental Bridge based on Mental Poker
 
+[![CodeFactor](https://www.codefactor.io/repository/github/kajchang/mental-bridge/badge)](https://www.codefactor.io/repository/github/kajchang/mental-bridge)
+
 Purely educational Mental Bridge using a [mental poker library](https://github.com/kripod/mental-poker).
 
 This project uses a NodeJS server to synchronize the players and relay the messages, but the server never holds secure information.

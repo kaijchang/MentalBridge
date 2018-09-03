@@ -87,8 +87,8 @@ socket.on("start", () => {
 				deck = mp.createDeck(Object.keys(players).map(player => players[player]["codeWords"]));
 	
 				status = "Shuffling";
-				console.log("Shuffling!");
 				console.log(deck);
+				console.log("Shuffling!");
 	
 				playerToShuffle = "North";
 				var shuffles = 0;
@@ -106,8 +106,8 @@ socket.on("start", () => {
 							socket.emit("shuffledDeck", deck);
 						} else if (shuffles == 4) {
 							status = "Locking";
-							console.log("Locking!");
 							console.log(deck);
+							console.log("Locking!");
 						}
 					}
 				});
