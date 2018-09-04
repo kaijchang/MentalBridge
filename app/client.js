@@ -1,10 +1,18 @@
 const mp = require("mental-poker");
 const shuffle = require("lodash.shuffle");
 const io = require("socket.io-client");
-const $ = require("jquery-browserify");
+const $ = require("jquery");
 const arrayBufferToBuffer = require("arraybuffer-to-buffer");
 
 const socket = io.connect();
+
+// Bootstrap
+
+window.jQuery = $;
+
+require("bootstrap");
+require("../node_modules/bootstrap/dist/css/bootstrap.css");
+require("../node_modules/@fortawesome/fontawesome-free/css/all.css");
 
 // Game Variables
 

@@ -13,6 +13,7 @@ const positions = ["North", "East", "South", "West"];
 
 app.use("/scripts", express.static(path.join(__dirname, "scripts")));
 app.use("/styles", express.static(path.join(__dirname, "styles")));
+app.use("/webfonts", express.static(path.join(__dirname, "../node_modules/@fortawesome/fontawesome-free/webfonts")));
 
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
