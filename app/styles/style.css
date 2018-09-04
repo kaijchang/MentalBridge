@@ -20,3 +20,7 @@ html, body {
 	height: 100%;
 	width: 100%;
 }
+
+.playingCards {
+	margin-top: 7em;
+}

@@ -22,13 +22,6 @@ var playerPosition;
 var hand;
 var self_;
 
-const nextCardinals = {
-    "North": "East",
-    "East": "South",
-    "South": "West",
-    "West": "North"
-}
-
 const players = {
     "North": {},
     "East": {},
@@ -36,10 +29,34 @@ const players = {
     "West": {}
 }
 
-
 const config = mp.createConfig(52);
 
 var status = "Waiting for Players";
+
+const cards = [];
+
+["spades", "hearts", "diams", "clubs"].forEach(suit => {
+    for (let rank = 2; rank <= 14; rank++) {
+        if (rank <= 10) {
+            cards.push([String(rank), suit]);
+        } else if (rank == 11) {
+            cards.push(["j", suit]);
+        } else if (rank == 12) {
+            cards.push(["q", suit]);
+        } else if (rank == 13) {
+            cards.push(["k", suit]);
+        } else if (rank == 14) {
+            cards.push(["a", suit]);
+        }
+    }
+});
+
+const nextCardinals = {
+    "North": "East",
+    "East": "South",
+    "South": "West",
+    "West": "North"
+}
 
 // Socket Events
 
@@ -188,6 +205,30 @@ socket.on("start", () => {
                                                     status = "Playing";
                                                     console.log(hand);
                                                     console.log("Playing!");
+
+                                                    Object.keys(players).forEach(player => {
+                                                        if (player != playerPosition) {
+                                                            for (let x = 0; x < 13; x ++) {
+                                                                $('<li><span class="card back">*</span></li>')
+                                                                    .hide()
+                                                                    .appendTo("#" + player + " > .card-body > .playingCards > .hand")
+                                                                    .show("normal");
+                                                            }
+                                                        } else {
+                                                            hand.forEach(card => {
+                                                                const cardInDeck = cards[card];
+                                                                $(`<li>
+                                                                    <span class="card rank-` + cardInDeck[0] + ` ` + cardInDeck[1] +`">
+                                                                        <span class="rank">` + cardInDeck[0] + `</span>
+                                                                        <span class="suit">&` + cardInDeck[1] + `;</span>
+                                                                    </span>
+                                                                   </li>`)
+                                                                    .hide()
+                                                                    .appendTo("#" + player + " > .card-body > .playingCards > .hand")
+                                                                    .show("normal");
+                                                            });
+                                                        }
+                                                    });
                                                 }
                                             }
                                         });

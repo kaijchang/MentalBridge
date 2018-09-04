@@ -18,3 +18,8 @@ cd mental-bridge
 ```
 
 Install all dependencies with `npm install`, and bundle the scripts with browserify with `npm run bundle`. Lastly, start the server with `npm start` and visit it at port 3000.
+
+## Thanks
+
+- [Mental Poker Implementation in JS by kripod](https://github.com/kripod/mental-poker)
+- [CSS Playing Cards by selfthinker](https://github.com/selfthinker/CSS-Playing-Cards) (Modified Slightly)
