@@ -70,11 +70,11 @@ socket.on("leave", pos => {
     $("#" + pos + " > .card-header").html('<i class="far fa-user"></i> Empty - ' + pos);
 });
 
-socket.on("positions", msg => {
-    if (msg[1] !== null) {
-        console.log("We're sitting in " + msg[1] + "!");
+socket.on("positions", (otherPlayers, selfPosition) => {
+    if (selfPosition !== null) {
+        console.log("We're sitting in " + selfPosition + "!");
 
-        var currentCardinal = msg[1];
+        var currentCardinal = selfPosition;
 
         $("[name='Bottom']").attr("id", currentCardinal);
 
@@ -87,13 +87,13 @@ socket.on("positions", msg => {
         $("[name='Right']").attr("id", nextCardinals[currentCardinal]);
     }
 
-    msg[0].forEach(pos => {
+    otherPlayers.forEach(pos => {
         $("#" + pos + " > .card-header").html('<i class="fas fa-user"></i> Occupied - ' + pos);
     });
 
-    if (msg[1] !== null) {
-        $("#" + msg[1] + " > .card-header").html('<i class="fas fa-user"></i> Me - ' + msg[1]);
-        playerPosition = msg[1];
+    if (selfPosition !== null) {
+        $("#" + selfPosition + " > .card-header").html('<i class="fas fa-user"></i> Me - ' + selfPosition);
+        playerPosition = selfPosition;
     }
 });
 
@@ -105,12 +105,12 @@ socket.on("start", () => {
     status = "Assembling CodeWords";
     console.log("Assembling CodeWords!");
 
-    socket.on("codeWords", msg => {
+    socket.on("codeWords", (codeWords, senderPosition) => {
         if (status == "Assembling CodeWords") {
-            if (players[msg[1]]["codeWords"] == undefined) {
-                const codeWordBuffer = msg[0].map(codeWord => arrayBufferToBuffer(codeWord));
+            if (players[senderPosition]["codeWords"] === undefined) {
+                const codeWordBuffer = codeWords.map(codeWord => arrayBufferToBuffer(codeWord));
 
-                players[msg[1]]["codeWords"] = codeWordBuffer;
+                players[senderPosition]["codeWords"] = codeWordBuffer;
 
                 if (Object.keys(players).filter(player => players[player]["codeWords"] !== undefined).length == 4) {
                     assembledCodeWords = mp.createDeck(Object.keys(players).map(player => players[player]["codeWords"]));
@@ -123,11 +123,11 @@ socket.on("start", () => {
                     var playerToShuffle = "North";
                     var shuffles = 0;
     
-                    socket.on("shuffledDeck", msg => {
-                        if (msg[1] == playerToShuffle && status == "Shuffling") {
-                            deck = msg[0].map(card => arrayBufferToBuffer(card));
+                    socket.on("shuffledDeck", (shuffledDeck, senderPosition) => {
+                        if (senderPosition == playerToShuffle && status == "Shuffling") {
+                            deck = shuffledDeck.map(card => arrayBufferToBuffer(card));
     
-                            playerToShuffle = nextCardinals[msg[1]];
+                            playerToShuffle = nextCardinals[senderPosition];
     
                             shuffles++;
     
@@ -142,11 +142,11 @@ socket.on("start", () => {
                                 var playerToLock = "North";
                                 var locks = 0;
     
-                                socket.on("lockedDeck", msg => {
-                                    if (msg[1] == playerToLock && status == "Locking") {
-                                        deck = msg[0].map(card => arrayBufferToBuffer(card));
+                                socket.on("lockedDeck", (lockedDeck, senderPosition) => {
+                                    if (senderPosition == playerToLock && status == "Locking") {
+                                        deck = lockedDeck.map(card => arrayBufferToBuffer(card));
     
-                                        playerToLock = nextCardinals[msg[1]];
+                                        playerToLock = nextCardinals[senderPosition];
     
                                         locks++;
     
@@ -171,9 +171,9 @@ socket.on("start", () => {
     
                                             var keyPairs = 0;
     
-                                            socket.on("cardKeys", msg => {
-                                                if (players[msg[1]]["keys"] == undefined) {
-                                                    players[msg[1]]["keys"] = msg[0].map(key => {
+                                            socket.on("cardKeys", (cardKeys, senderPosition) => {
+                                                if (players[senderPosition]["keys"] === undefined) {
+                                                    players[senderPosition]["keys"] = cardKeys.map(key => {
                                                         if (key === null) {
                                                             return key;
                                                         } else {

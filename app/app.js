@@ -30,7 +30,7 @@ io.on("connection", socket => {
 			io.to("players").emit("join", playerPosition);
 			io.to("spectators").emit("join", playerPosition);
 
-			socket.emit("positions", [Object.keys(players), playerPosition]);
+			socket.emit("positions", Object.keys(players), playerPosition);
 
 			players[playerPosition] = socket.id;
 
@@ -50,22 +50,22 @@ io.on("connection", socket => {
 
 			socket.on("codeWords", codeWords => {
 				console.log(playerPosition + " Sending CodeWords");
-				io.to("players").emit("codeWords", [codeWords, playerPosition]);
+				io.to("players").emit("codeWords", codeWords, playerPosition);
 			});
 
 			socket.on("shuffledDeck", deck => {
 				console.log(playerPosition + " Shuffling");
-				io.to("players").emit("shuffledDeck", [deck, playerPosition]);
+				io.to("players").emit("shuffledDeck", deck, playerPosition);
 			});
 
 			socket.on("lockedDeck", deck => {
 				console.log(playerPosition + " Locking");
-				io.to("players").emit("lockedDeck", [deck, playerPosition]);
+				io.to("players").emit("lockedDeck", deck, playerPosition);
 			});
 
 			socket.on("cardKeys", keys => {
 				console.log(playerPosition + " Sending Keys");
-				io.to("players").emit("cardKeys", [keys, playerPosition]);
+				io.to("players").emit("cardKeys", keys, playerPosition);
 			});
 
 			if (Object.keys(players).length == 4) {
