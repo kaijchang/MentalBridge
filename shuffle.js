@@ -1,3 +1,5 @@
+// Proof of Concept
+
 const mp = require("mental-poker");
 const shuffle = require("lodash.shuffle");
 

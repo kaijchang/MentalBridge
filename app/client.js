@@ -6,7 +6,7 @@ const arrayBufferToBuffer = require("arraybuffer-to-buffer");
 
 const socket = io.connect();
 
-// Bootstrap
+// Bootstrap / FontAwesome
 
 window.jQuery = $;
 
@@ -106,152 +106,240 @@ socket.on("start", () => {
     console.log("Assembling CodeWords!");
 
     socket.on("codeWords", (codeWords, senderPosition) => {
-        if (status == "Assembling CodeWords") {
-            if (players[senderPosition]["codeWords"] === undefined) {
-                const codeWordBuffer = codeWords.map(codeWord => arrayBufferToBuffer(codeWord));
+        if (players[senderPosition]["codeWords"] === undefined && status == "Assembling CodeWords") {
+            const codeWordBuffer = codeWords.map(codeWord => arrayBufferToBuffer(codeWord));
+            players[senderPosition]["codeWords"] = codeWordBuffer;
+            if (Object.keys(players).filter(player => players[player]["codeWords"] !== undefined).length == 4) {
+                assembledCodeWords = mp.createDeck(Object.keys(players).map(player => players[player]["codeWords"]));
+                deck = assembledCodeWords;
 
-                players[senderPosition]["codeWords"] = codeWordBuffer;
+                status = "Shuffling";
+                console.log(deck);
+                console.log("Shuffling!");
 
-                if (Object.keys(players).filter(player => players[player]["codeWords"] !== undefined).length == 4) {
-                    assembledCodeWords = mp.createDeck(Object.keys(players).map(player => players[player]["codeWords"]));
-                    deck = assembledCodeWords;
-    
-                    status = "Shuffling";
-                    console.log(deck);
-                    console.log("Shuffling!");
-    
-                    var playerToShuffle = "North";
-                    var shuffles = 0;
-    
-                    socket.on("shuffledDeck", (shuffledDeck, senderPosition) => {
-                        if (senderPosition == playerToShuffle && status == "Shuffling") {
-                            deck = shuffledDeck.map(card => arrayBufferToBuffer(card));
-    
-                            playerToShuffle = nextCardinals[senderPosition];
-    
-                            shuffles++;
-    
-                            if (shuffles != 4 && playerToShuffle == playerPosition) {
-                                deck = mp.encryptDeck(shuffle(deck), self_.keyPairs[config.cardCount].privateKey);
-                                socket.emit("shuffledDeck", deck);
-                            } else if (shuffles == 4) {
-                                status = "Locking";
-                                console.log(deck);
-                                console.log("Locking!");
-    
-                                var playerToLock = "North";
-                                var locks = 0;
-    
-                                socket.on("lockedDeck", (lockedDeck, senderPosition) => {
-                                    if (senderPosition == playerToLock && status == "Locking") {
-                                        deck = lockedDeck.map(card => arrayBufferToBuffer(card));
-    
-                                        playerToLock = nextCardinals[senderPosition];
-    
-                                        locks++;
-    
-                                        if (locks != 4 && playerToLock == playerPosition) {
-                                            deck = mp.encryptDeck(
-                                                deck = mp.decryptDeck(deck, self_.keyPairs[config.cardCount].privateKey),
-                                                self_.keyPairs.map(keyPair => keyPair.privateKey),
-                                            );
-                                            socket.emit("lockedDeck", deck);
-                                        } else if (locks == 4) {
-                                            status = "Dealing";
-                                            console.log(deck);
-                                            console.log("Dealing!");
-    
-                                            socket.emit("cardKeys", self_.keyPairs.map(key => {
-                                                if (self_.keyPairs.indexOf(key) <= (Object.keys(players).indexOf(playerPosition) + 1) * 13 - 1 && self_.keyPairs.indexOf(key) >= Object.keys(players).indexOf(playerPosition) * 13) {
-                                                    return null;
-                                                } else {
-                                                    return key.privateKey;
-                                                }
-                                            }));
-    
-                                            var keyPairs = 0;
-    
-                                            socket.on("cardKeys", (cardKeys, senderPosition) => {
-                                                if (players[senderPosition]["keys"] === undefined) {
-                                                    players[senderPosition]["keys"] = cardKeys.map(key => {
-                                                        if (key === null) {
-                                                            return key;
+                var playerToShuffle = "North";
+                var shuffles = 0;
+
+                socket.on("shuffledDeck", (shuffledDeck, senderPosition) => {
+                    if (senderPosition == playerToShuffle && status == "Shuffling") {
+                        deck = shuffledDeck.map(card => arrayBufferToBuffer(card));
+
+                        playerToShuffle = nextCardinals[senderPosition];
+
+                        shuffles++;
+
+                        if (shuffles != 4 && playerToShuffle == playerPosition) {
+                            deck = mp.encryptDeck(shuffle(deck), self_.keyPairs[config.cardCount].privateKey);
+                            socket.emit("shuffledDeck", deck);
+                        } else if (shuffles == 4) {
+                            status = "Locking";
+                            console.log(deck);
+                            console.log("Locking!");
+
+                            var playerToLock = "North";
+                            var locks = 0;
+
+                            socket.on("lockedDeck", (lockedDeck, senderPosition) => {
+                                if (senderPosition == playerToLock && status == "Locking") {
+                                    deck = lockedDeck.map(card => arrayBufferToBuffer(card));
+
+                                    playerToLock = nextCardinals[senderPosition];
+
+                                    locks++;
+
+                                    if (locks != 4 && playerToLock == playerPosition) {
+                                        deck = mp.encryptDeck(
+                                            deck = mp.decryptDeck(deck, self_.keyPairs[config.cardCount].privateKey),
+                                            self_.keyPairs.map(keyPair => keyPair.privateKey),
+                                        );
+                                        socket.emit("lockedDeck", deck);
+                                    } else if (locks == 4) {
+                                        status = "Dealing";
+                                        console.log(deck);
+                                        console.log("Dealing!");
+
+                                        socket.emit("cardKeys", self_.keyPairs.map(key => {
+                                            if (self_.keyPairs.indexOf(key) <= (Object.keys(players).indexOf(playerPosition) + 1) * 13 - 1 && self_.keyPairs.indexOf(key) >= Object.keys(players).indexOf(playerPosition) * 13) {
+                                                return null;
+                                            } else {
+                                                return key.privateKey;
+                                            }
+                                        }));
+
+                                        var keyPairs = 0;
+
+                                        socket.on("cardKeys", (cardKeys, senderPosition) => {
+                                            if (players[senderPosition]["keys"] === undefined && status == "Dealing") {
+                                                players[senderPosition]["keys"] = cardKeys.map(key => {
+                                                    if (key === null) {
+                                                        return key;
+                                                    } else {
+                                                        return arrayBufferToBuffer(key);
+                                                    }
+                                                });
+
+                                                if (Object.keys(players).filter(player => players[player]["keys"] !== undefined).length == 4) {
+                                                    hand = [];
+
+                                                    deck.filter(card => deck.indexOf(card) <= (Object.keys(players).indexOf(playerPosition) + 1) * 13 - 1 && deck.indexOf(card) >= Object.keys(players).indexOf(playerPosition) * 13).forEach(card => {
+                                                        const cardDecrypted = mp.decryptCard(
+                                                            card,
+                                                            Object.keys(players).map(player => {
+                                                                if (player == playerPosition) {
+                                                                    return self_.keyPairs[deck.indexOf(card)].privateKey;
+                                                                } else {
+                                                                    return players[player]["keys"][deck.indexOf(card)];
+                                                                }
+                                                            })
+                                                        );
+
+                                                        const codeWordIndex = assembledCodeWords.findIndex(cardCodeword =>
+                                                            cardCodeword.equals(cardDecrypted)
+                                                        );
+
+                                                        hand.push(codeWordIndex);
+                                                    });
+
+                                                    status = "Bidding";
+                                                    console.log(hand);
+                                                    console.log("Bidding!");
+
+                                                    Object.keys(players).forEach(player => {
+                                                        if (player != playerPosition) {
+                                                            for (let x = 0; x < 13; x ++) {
+                                                                $('<li><span class="card back">*</span></li>')
+                                                                    .hide()
+                                                                    .appendTo("#" + player + " > .card-body > .playingCards > .hand")
+                                                                    .show("normal");
+                                                            }
                                                         } else {
-                                                            return arrayBufferToBuffer(key);
+                                                            hand.sort((a, b) => a - b).forEach(card => {
+                                                                const cardInDeck = cards[card];
+                                                                $(`<li>
+                                                                    <a class="card rank-` + cardInDeck[0] + ` ` + cardInDeck[1] +`">
+                                                                        <span class="rank">` + cardInDeck[0] + `</span>
+                                                                        <span class="suit">&` + cardInDeck[1] + `;</span>
+                                                                    </a>
+                                                                   </li>`)
+                                                                    .hide()
+                                                                    .appendTo("#" + player + " > .card-body > .playingCards > .hand")
+                                                                    .show("normal");
+                                                            });
                                                         }
                                                     });
-    
-                                                    if (Object.keys(players).filter(player => players[player]["keys"] !== undefined).length == 4) {
-                                                        hand = [];
-    
-                                                        deck.filter(card => deck.indexOf(card) <= (Object.keys(players).indexOf(playerPosition) + 1) * 13 - 1 && deck.indexOf(card) >= Object.keys(players).indexOf(playerPosition) * 13).forEach(card => {
-                                                            const cardDecrypted = mp.decryptCard(
-                                                                card,
-                                                                Object.keys(players).map(player => {
-                                                                    if (player == playerPosition) {
-                                                                        return self_.keyPairs[deck.indexOf(card)].privateKey;
-                                                                    } else {
-                                                                        return players[player]["keys"][deck.indexOf(card)];
-                                                                    }
-                                                                })
-                                                            );
-    
-                                                            const codeWordIndex = assembledCodeWords.findIndex(cardCodeword =>
-                                                                cardCodeword.equals(cardDecrypted)
-                                                            );
-    
-                                                            hand.push(codeWordIndex);
-                                                        });
-    
-                                                        status = "Bidding";
-                                                        console.log(hand);
-                                                        console.log("Bidding!");
-    
-                                                        Object.keys(players).forEach(player => {
-                                                            if (player != playerPosition) {
-                                                                for (let x = 0; x < 13; x ++) {
-                                                                    $('<li><span class="card back">*</span></li>')
-                                                                        .hide()
-                                                                        .appendTo("#" + player + " > .card-body > .playingCards > .hand")
-                                                                        .show("normal");
-                                                                }
-                                                            } else {
-                                                                hand.sort((a, b) => a - b).forEach(card => {
-                                                                    const cardInDeck = cards[card];
-                                                                    $(`<li>
-                                                                        <a class="card rank-` + cardInDeck[0] + ` ` + cardInDeck[1] +`">
-                                                                            <span class="rank">` + cardInDeck[0] + `</span>
-                                                                            <span class="suit">&` + cardInDeck[1] + `;</span>
-                                                                        </a>
-                                                                       </li>`)
-                                                                        .hide()
-                                                                        .appendTo("#" + player + " > .card-body > .playingCards > .hand")
-                                                                        .show("normal");
-                                                                });
-                                                            }
-                                                        });
-                                                    }
+
+                                                    // replace with some deterministically random, provably fair generator in the future
+                                                    var playerToBid = "North";
+
+                                                    $("#" + playerPosition)
+                                                        .parent()
+                                                        .parent()
+                                                        .find(".col")
+                                                        .last()
+                                                        .append(`<div class="card" id="biddingbox">
+                                                                    <div class="card-body">
+                                                                        <div class="bidding-level mt-1">
+                                                                            <button type="button" class="btn btn-dark" id="one-level">1</button>
+                                                                            <div class="suits">
+                                                                                <button type="button" class="btn btn-light">&spades;</button>
+                                                                                <button type="button" class="btn btn-light">&hearts;</button>
+                                                                                <button type="button" class="btn btn-light">&diams;</button>
+                                                                                <button type="button" class="btn btn-light">&clubs;</button>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="bidding-level mt-1">
+                                                                            <button type="button" class="btn btn-dark" id="two-level">2</button>
+                                                                            <div class="suits">
+                                                                                <button type="button" class="btn btn-light">&spades;</button>
+                                                                                <button type="button" class="btn btn-light">&hearts;</button>
+                                                                                <button type="button" class="btn btn-light">&diams;</button>
+                                                                                <button type="button" class="btn btn-light">&clubs;</button>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="bidding-level mt-1">
+                                                                            <button type="button" class="btn btn-dark" id="three-level">3</button>
+                                                                            <div class="suits">
+                                                                                <button type="button" class="btn btn-light">&spades;</button>
+                                                                                <button type="button" class="btn btn-light">&hearts;</button>
+                                                                                <button type="button" class="btn btn-light">&diams;</button>
+                                                                                <button type="button" class="btn btn-light">&clubs;</button>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="bidding-level mt-1">
+                                                                            <button type="button" class="btn btn-dark" id="four-level">4</button>
+                                                                            <div class="suits">
+                                                                                <button type="button" class="btn btn-light">&spades;</button>
+                                                                                <button type="button" class="btn btn-light">&hearts;</button>
+                                                                                <button type="button" class="btn btn-light">&diams;</button>
+                                                                                <button type="button" class="btn btn-light">&clubs;</button>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="bidding-level mt-1">
+                                                                            <button type="button" class="btn btn-dark" id="five-level">5</button>
+                                                                            <div class="suits">
+                                                                                <button type="button" class="btn btn-light">&spades;</button>
+                                                                                <button type="button" class="btn btn-light">&hearts;</button>
+                                                                                <button type="button" class="btn btn-light">&diams;</button>
+                                                                                <button type="button" class="btn btn-light">&clubs;</button>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="bidding-level mt-1">
+                                                                            <button type="button" class="btn btn-dark" id="six-level">6</button>
+                                                                            <div class="suits">
+                                                                                <button type="button" class="btn btn-light">&spades;</button>
+                                                                                <button type="button" class="btn btn-light">&hearts;</button>
+                                                                                <button type="button" class="btn btn-light">&diams;</button>
+                                                                                <button type="button" class="btn btn-light">&clubs;</button>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="bidding-level mt-1">
+                                                                            <button type="button" class="btn btn-dark" id="seven-level">7</button>
+                                                                            <div class="suits">
+                                                                                <button type="button" class="btn btn-light">&spades;</button>
+                                                                                <button type="button" class="btn btn-light">&hearts;</button>
+                                                                                <button type="button" class="btn btn-light">&diams;</button>
+                                                                                <button type="button" class="btn btn-light">&clubs;</button>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="mt-1">
+                                                                            <button type="button" class="btn btn-success" id="pass">Pass</button>
+                                                                            <button type="button" class="btn btn-danger" id="double">Double</button>
+                                                                        </div>
+                                                                    </div>
+                                                                    <h5 class="card-header">
+                                                                        Bidding Box
+                                                                    </h5>
+                                                                </div>`);
+
+                                                    $.each($("#biddingbox").find("button"), (_, button) => {
+                                                        $(button).attr("disabled", true);
+                                                    });
+
+                                                    $.each($("#biddingbox").find(".bidding-level"), (_, level) => {
+                                                        $(level).addClass("disabled");
+                                                    });
                                                 }
-                                            });
-                                        }
+                                            }
+                                        });
                                     }
-                                });
-    
-                                if (playerToLock == playerPosition) {
-                                    deck = mp.encryptDeck(
-                                        mp.decryptDeck(deck, self_.keyPairs[config.cardCount].privateKey), 
-                                        self_.keyPairs.map(keyPair => keyPair.privateKey),
-                                    );
-                                    socket.emit("lockedDeck", deck);
                                 }
+                            });
+
+                            if (playerToLock == playerPosition) {
+                                deck = mp.encryptDeck(
+                                    mp.decryptDeck(deck, self_.keyPairs[config.cardCount].privateKey), 
+                                    self_.keyPairs.map(keyPair => keyPair.privateKey),
+                                );
+                                socket.emit("lockedDeck", deck);
                             }
                         }
-                    });
-    
-                    if (playerToShuffle == playerPosition) {
-                        deck = mp.encryptDeck(shuffle(deck), self_.keyPairs[config.cardCount].privateKey);
-                        socket.emit("shuffledDeck", deck);
                     }
+                });
+
+                if (playerToShuffle == playerPosition) {
+                    deck = mp.encryptDeck(shuffle(deck), self_.keyPairs[config.cardCount].privateKey);
+                    socket.emit("shuffledDeck", deck);
                 }
             }
         }   
