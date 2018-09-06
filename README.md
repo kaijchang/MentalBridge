@@ -17,7 +17,7 @@ git clone https://github.com/kajchang/mental-bridge.git
 cd mental-bridge
 ```
 
-Install all dependencies with `npm install`, and bundle the scripts with browserify with `npm run bundle`. Lastly, start the server with `npm start` and visit it at port 3000.
+Install all dependencies with `npm install --production`, and start the server with `npm start` and visit it at port 3000.
 
 ## Thanks
 
