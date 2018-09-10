@@ -1,6 +1,6 @@
 /* General */
 
-html, body {
+html, body, #bids, table {
 	height: 100%;
 }
 
@@ -8,7 +8,7 @@ html, body {
 	text-align: center;
 }
 
-.container {
+.container, .card {
 	height: 100%;
 	width: 100%;
 }
@@ -18,14 +18,14 @@ html, body {
 	height: 33%;
 }
 
-.card {
-	height: 100%;
-	width: 100%;
-}
-
 .playingCards {
 	margin-top: 7em;
 }
+
+table > thead > tr, table > tbody > tr {
+	height: 14%;
+}
+
 
 /* Bidding Box */
 
@@ -33,7 +33,7 @@ html, body {
 	display: none;
 }
 
-.bidding-level:hover > .suits {
+.bidding-level:not(.disabled):hover > .suits {
 	display: inline;
 }
 

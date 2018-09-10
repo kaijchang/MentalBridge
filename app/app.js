@@ -68,6 +68,11 @@ io.on("connection", socket => {
 				io.to("players").emit("cardKeys", keys, playerPosition);
 			});
 
+			socket.on("bid", bid => {
+				console.log(playerPosition + " Bidding")
+				io.to("players").emit("bid", bid, playerPosition);
+			});
+
 			if (Object.keys(players).length == 4) {
 				io.to("players").emit("start");
 			}

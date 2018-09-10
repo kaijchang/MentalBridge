@@ -129,7 +129,10 @@ socket.on("start", () => {
                         shuffles++;
 
                         if (shuffles != 4 && playerToShuffle == playerPosition) {
-                            deck = mp.encryptDeck(shuffle(deck), self_.keyPairs[config.cardCount].privateKey);
+                            deck = mp.encryptDeck(
+                                shuffle(deck),
+                                self_.keyPairs[config.cardCount].privateKey
+                            );
                             socket.emit("shuffledDeck", deck);
                         } else if (shuffles == 4) {
                             status = "Locking";
@@ -159,7 +162,9 @@ socket.on("start", () => {
                                         console.log("Dealing!");
 
                                         socket.emit("cardKeys", self_.keyPairs.map(key => {
-                                            if (self_.keyPairs.indexOf(key) <= (Object.keys(players).indexOf(playerPosition) + 1) * 13 - 1 && self_.keyPairs.indexOf(key) >= Object.keys(players).indexOf(playerPosition) * 13) {
+                                            let indexOfPlayer = Object.keys(players).indexOf(playerPosition);
+
+                                            if (self_.keyPairs.indexOf(key) <= (indexOfPlayer + 1) * 13 - 1 && self_.keyPairs.indexOf(key) >= indexOfPlayer * 13) {
                                                 return null;
                                             } else {
                                                 return key.privateKey;
@@ -181,7 +186,9 @@ socket.on("start", () => {
                                                 if (Object.keys(players).filter(player => players[player]["keys"] !== undefined).length == 4) {
                                                     hand = [];
 
-                                                    deck.filter(card => deck.indexOf(card) <= (Object.keys(players).indexOf(playerPosition) + 1) * 13 - 1 && deck.indexOf(card) >= Object.keys(players).indexOf(playerPosition) * 13).forEach(card => {
+                                                    let indexOfPlayer = Object.keys(players).indexOf(playerPosition);
+
+                                                    deck.filter(card => deck.indexOf(card) <= (indexOfPlayer + 1) * 13 - 1 && deck.indexOf(card) >= indexOfPlayer * 13).forEach(card => {
                                                         const cardDecrypted = mp.decryptCard(
                                                             card,
                                                             Object.keys(players).map(player => {
@@ -312,13 +319,143 @@ socket.on("start", () => {
                                                                     </h5>
                                                                 </div>`);
 
-                                                    $.each($("#biddingbox").find("button"), (_, button) => {
-                                                        $(button).attr("disabled", true);
+                                                    $($($(".row")[1]).find(".col")[1])
+                                                        .append(`<div id="bids">
+                                                                    <table class="table table-bordered">
+                                                                        <thead>
+                                                                          <tr>
+                                                                            <th scope="col">North</th>
+                                                                            <th scope="col">East</th>
+                                                                            <th scope="col">South</th>
+                                                                            <th scope="col">West</th>
+                                                                          </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                          <tr>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                          </tr>
+                                                                          <tr>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                          </tr>
+                                                                          <tr>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                          </tr>
+                                                                          <tr>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                          </tr>
+                                                                          <tr>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                          </tr>
+                                                                          <tr>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                            <td></td>
+                                                                          </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                 </div>`);
+
+                                                    $.each($(".bidding-level > .suits > button"), (_, button) => {
+                                                        $(button).click(() => {
+                                                            socket.emit("bid", [parseInt($(button).parent().parent().find(".btn-dark").text()), $(button).text()]);
+
+                                                            $.each($("#biddingbox").find("button"), (_, button) => {
+                                                                $(button).attr("disabled", true);
+                                                            });
+
+                                                            $.each($("#biddingbox").find(".bidding-level"), (_, level) => {
+                                                                $(level).addClass("disabled");
+                                                            });
+                                                        });
                                                     });
 
-                                                    $.each($("#biddingbox").find(".bidding-level"), (_, level) => {
-                                                        $(level).addClass("disabled");
+                                                    $("#pass").click(() => {
+                                                        socket.emit("bid", "pass");
+
+                                                        $.each($("#biddingbox").find("button"), (_, button) => {
+                                                            $(button).attr("disabled", true);
+                                                        });
+
+                                                        $.each($("#biddingbox").find(".bidding-level"), (_, level) => {
+                                                            $(level).addClass("disabled");
+                                                        });
                                                     });
+
+                                                    $("#double").click(() => {
+                                                        socket.emit("bid", "double");
+
+                                                        $.each($("#biddingbox").find("button"), (_, button) => {
+                                                            $(button).attr("disabled", true);
+                                                        });
+
+                                                        $.each($("#biddingbox").find(".bidding-level"), (_, level) => {
+                                                            $(level).addClass("disabled");
+                                                        });
+                                                    });
+
+
+                                                    socket.on("bid", (bid, senderPosition) => {
+                                                        if (status == "Bidding" && playerToBid == senderPosition) {
+                                                            for (let tr of $("tbody > tr").toArray()) {
+                                                                var found = false;
+
+                                                                for (let td of $(tr).find("td").toArray()) {
+                                                                    let numberInRow = $(tr).find("td").toArray().findIndex(node => node.isSameNode(td));
+                                                                    let indexOfPlayer = Object.keys(nextCardinals).indexOf(playerToBid);
+
+                                                                    if ((numberInRow % indexOfPlayer === 0 || numberInRow === playerToBid) && $(td).text() === "") {
+                                                                        found = true;
+
+                                                                        $(td).text(typeof(bid) === "object" ? bid.join(" ") : bid);
+
+                                                                        break;
+                                                                    }
+                                                                }
+
+                                                                if (found) {
+                                                                    break;
+                                                                }
+                                                            }
+
+                                                            playerToBid = nextCardinals[playerToBid];
+
+                                                            if (playerToBid == playerPosition) {
+                                                                $.each($("#biddingbox").find("button"), (_, button) => {
+                                                                    $(button).attr("disabled", false);
+                                                                });
+
+                                                                $.each($("#biddingbox").find(".bidding-level"), (_, level) => {
+                                                                    $(level).removeClass("disabled");
+                                                                });
+                                                            }
+                                                        }
+                                                    });
+
+                                                    if (playerToBid != playerPosition) {
+                                                        $.each($("#biddingbox").find("button"), (_, button) => {
+                                                            $(button).attr("disabled", true);
+                                                        });
+
+                                                        $.each($("#biddingbox").find(".bidding-level"), (_, level) => {
+                                                            $(level).addClass("disabled");
+                                                        });
+                                                    }
                                                 }
                                             }
                                         });
@@ -338,7 +475,10 @@ socket.on("start", () => {
                 });
 
                 if (playerToShuffle == playerPosition) {
-                    deck = mp.encryptDeck(shuffle(deck), self_.keyPairs[config.cardCount].privateKey);
+                    deck = mp.encryptDeck(
+                        shuffle(deck),
+                        self_.keyPairs[config.cardCount].privateKey,
+                    );
                     socket.emit("shuffledDeck", deck);
                 }
             }

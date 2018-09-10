@@ -4,9 +4,12 @@
 
 Purely educational Mental Bridge using a [mental poker library](https://github.com/kripod/mental-poker).
 
-This project uses a NodeJS server to synchronize the players and relay the messages, but the server never holds secure information.
-
 The game has no resistance against malicious players sending malformed messages or players dropping out of the game, because only that player has the keys for their cards, so no other player can pick them up and continue play.
+
+This project has a minimal backend in the form of a  NodeJS server to synchronize the players and relay game messages through Socket.IO, but the server never holds secure information. It could feasibly be replaced in the future by a smart contract that could also implement escrows to protect against dropped players.
+
+The frontend should really be re-written in React because of how state-based it is and how much data we're storing in the DOM because of the fact that all the game's logic occurs client-side.
+
 
 ## Installation
 
