@@ -18,8 +18,7 @@ io.on("connection", socket => {
 			const availablePositions = positions.filter(position => !Object.keys(players).includes(position));
 			const playerPosition = availablePositions[Math.floor(Math.random() * availablePositions.length)];
 
-			io.to("players").emit("join", playerPosition);
-			io.to("spectators").emit("join", playerPosition);
+			io.emit("join", playerPosition);
 
 			socket.emit("positions", Object.keys(players), playerPosition);
 
@@ -36,6 +35,10 @@ io.on("connection", socket => {
 
 				console.log(players);
 			});
+
+			if (Object.keys(players).length == 4) {
+				io.to("players").emit("start");
+			}
 
 		} else {
 			socket.emit("positions", [Object.keys(players), null]);
