@@ -1,23 +1,16 @@
 {
   "name": "bridge",
   "version": "0.1.0",
-  "description": "Bridge over Socket.io",
-  "main": "shuffle.js",
-  "scripts": {
-    "start": "node ."
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kajchang/bridge.git"
-  },
-  "author": "Kai Chang",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/kajchang/bridge/issues"
-  },
-  "homepage": "https://github.com/kajchang/bridge#readme",
+  "private": true,
   "dependencies": {
-    "lodash.shuffle": "^4.2.0",
-    "mental-poker": "^1.0.0"
+    "react": "^16.5.0",
+    "react-dom": "^16.5.0",
+    "react-scripts": "1.1.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
   }
 }
