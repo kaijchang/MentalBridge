@@ -36,6 +36,10 @@ io.on("connection", socket => {
 				console.log(players);
 			});
 
+			socket.on("codeWords", (codeWords) => {
+				io.to("players").emit("codeWords", codeWords, playerPosition);
+			});
+
 			if (Object.keys(players).length == 4) {
 				io.to("players").emit("start");
 			}

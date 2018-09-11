@@ -4,7 +4,9 @@
   "private": true,
   "main": "app/app.js",
   "dependencies": {
+    "arraybuffer-to-buffer": "^0.0.4",
     "express": "^4.16.3",
+    "lodash.shuffle": "^4.2.0",
     "mental-poker": "^1.0.0",
     "react": "^16.5.0",
     "react-dom": "^16.5.0",

@@ -25,4 +25,16 @@ function subscribeToLeave(callback) {
 	});
 }
 
-export { subscribeToGameStart, subscribeToPositions, subscribeToJoin, subscribeToLeave };
+function subscribeToCodeWords(callback) {
+	socket.on("codeWords", (codeWords, playerPosition) => {
+		callback(codeWords, playerPosition);
+	});
+}
+
+// send
+
+function sendCodeWords(codeWords) {
+	socket.emit("codeWords", codeWords);
+}
+
+export { subscribeToGameStart, subscribeToPositions, subscribeToJoin, subscribeToLeave, subscribeToCodeWords, sendCodeWords };
