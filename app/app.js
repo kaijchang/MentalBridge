@@ -37,8 +37,15 @@ io.on("connection", socket => {
 			});
 
 			socket.on("codeWords", (codeWords) => {
+				console.log(playerPosition + " Sending CodeWords");
 				io.to("players").emit("codeWords", codeWords, playerPosition);
 			});
+
+			socket.on("shuffledDeck", (shuffledDeck) => {
+				console.log(playerPosition + " Shuffling");
+				io.to("players").emit("shuffledDeck", shuffledDeck, playerPosition);
+			});
+
 
 			if (Object.keys(players).length == 4) {
 				io.to("players").emit("start");

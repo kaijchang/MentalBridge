@@ -2,9 +2,18 @@ import React from "react";
 import ReactDOM from "react-dom";
 
 import * as mp from "mental-poker";
+import shuffle from "lodash.shuffle";
+
 import arrayBufferToBuffer from "arraybuffer-to-buffer";
 
-import { subscribeToGameStart, subscribeToPositions, subscribeToJoin, subscribeToLeave, subscribeToCodeWords, sendCodeWords } from "./sockets";
+import { subscribeToGameStart, subscribeToPositions, subscribeToJoin, subscribeToLeave, subscribeToCodeWords, sendCodeWords, subscribeToShuffledDeck, sendShuffledDeck } from "./sockets";
+
+const cardinalMap = {
+	"North": "East",
+	"East": "South",
+	"South": "West",
+	"West": "North"
+};
 
 class Player extends React.Component {
 	render() {
@@ -22,6 +31,9 @@ class Game extends React.Component {
 
 		this.state = {
 			gameStatus: "Waiting for Players",
+			config: mp.createConfig(52),
+			turn: "",
+			playerPosition: "",
 			self: {},
 			deck: [],
 			North: {
@@ -44,6 +56,7 @@ class Game extends React.Component {
 
 		subscribeToPositions((otherPlayers, playerPosition) => {
 			this.setState({
+				playerPosition: playerPosition,
   				[playerPosition]: Object.assign({}, this.state[playerPosition], {status: "Self"})
 			});
 
@@ -58,10 +71,10 @@ class Game extends React.Component {
 			if (this.state.gameStatus === "Waiting for Players") {
 				this.setState({
 					gameStatus: "Sending Codewords",
-					self: mp.createPlayer(mp.createConfig(52))
+					self: mp.createPlayer(this.state.config)
 				});
 
-				console.log("Sending Codewords");
+				console.log(this.state.gameStatus);
 
 				subscribeToCodeWords((codeWords, playerPosition) => {
 					if (this.state[playerPosition].codeWords.length === 0) {
@@ -71,11 +84,44 @@ class Game extends React.Component {
 
 						if (this.state.North.codeWords.length === 52 && this.state.East.codeWords.length === 52 && this.state.South.codeWords.length === 52 && this.state.West.codeWords.length === 52) {
 							this.setState({
-								status: "Shuffling",
-								deck: mp.createDeck([this.state.North.codeWords, this.state.East.codeWords, this.state.South.codeWords, this.state.West.codeWords])
+								gameStatus: "Shuffling",
+								deck: mp.createDeck([this.state.North.codeWords, this.state.East.codeWords, this.state.South.codeWords, this.state.West.codeWords]),
+								turn: "North"
 							});
 
-							console.log("Shuffling");
+							console.log(this.state.gameStatus);
+
+							subscribeToShuffledDeck((shuffledDeck, playerPosition) => {
+								if (this.state.gameStatus === "Shuffling" && playerPosition === this.state.turn) {
+									this.setState({
+										deck: shuffledDeck.map(card => arrayBufferToBuffer(card)),
+										turn: cardinalMap[this.state.turn]
+									});
+
+									if (this.state.turn === "North") {
+										this.setState({
+											gameStatus: "Locking"
+										});
+
+										console.log(this.state.gameStatus);
+
+									} else if (this.state.turn === this.state.playerPosition) {
+										this.setState({
+											deck: mp.encryptDeck(shuffle(this.state.deck), this.state.self.keyPairs[this.state.config.cardCount].privateKey)
+										});
+
+										sendShuffledDeck(this.state.deck);
+									}
+								}
+							});
+
+							if (this.state.turn === this.state.playerPosition) {
+								this.setState({
+									deck: mp.encryptDeck(shuffle(this.state.deck), this.state.self.keyPairs[this.state.config.cardCount].privateKey)
+								});
+
+								sendShuffledDeck(this.state.deck);
+							}
 						}
 					}
 				});

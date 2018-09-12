@@ -31,10 +31,20 @@ function subscribeToCodeWords(callback) {
 	});
 }
 
+function subscribeToShuffledDeck(callback) {
+	socket.on("shuffledDeck", (lockedDeck, playerPosition) => {
+		callback(lockedDeck, playerPosition);
+	});
+}
+
 // send
 
 function sendCodeWords(codeWords) {
 	socket.emit("codeWords", codeWords);
 }
 
-export { subscribeToGameStart, subscribeToPositions, subscribeToJoin, subscribeToLeave, subscribeToCodeWords, sendCodeWords };
+function sendShuffledDeck(shuffledDeck) {
+	socket.emit("shuffledDeck", shuffledDeck);
+}
+
+export { subscribeToGameStart, subscribeToPositions, subscribeToJoin, subscribeToLeave, subscribeToCodeWords, sendCodeWords, subscribeToShuffledDeck, sendShuffledDeck };
