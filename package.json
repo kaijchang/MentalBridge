@@ -5,12 +5,14 @@
   "main": "app/app.js",
   "dependencies": {
     "arraybuffer-to-buffer": "^0.0.4",
+    "bootstrap": "^4.1.3",
     "express": "^4.16.3",
     "lodash.shuffle": "^4.2.0",
     "mental-poker": "^1.0.0",
     "react": "^16.5.0",
     "react-dom": "^16.5.0",
     "react-scripts": "1.1.5",
+    "reactstrap": "^6.4.0",
     "socket.io": "^2.1.1",
     "socket.io-client": "^2.1.1"
   },
