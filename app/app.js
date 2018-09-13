@@ -46,6 +46,11 @@ io.on("connection", socket => {
 				io.to("players").emit("shuffledDeck", shuffledDeck, playerPosition);
 			});
 
+			socket.on("lockedDeck", (lockedDeck) => {
+				console.log(playerPosition + " Locking");
+				io.to("players").emit("lockedDeck", lockedDeck, playerPosition);
+			});
+
 
 			if (Object.keys(players).length == 4) {
 				io.to("players").emit("start");

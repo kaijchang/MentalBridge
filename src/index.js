@@ -6,7 +6,7 @@ import shuffle from "lodash.shuffle";
 
 import arrayBufferToBuffer from "arraybuffer-to-buffer";
 
-import { subscribeToGameStart, subscribeToPositions, subscribeToJoin, subscribeToLeave, subscribeToCodeWords, sendCodeWords, subscribeToShuffledDeck, sendShuffledDeck } from "./sockets";
+import { subscribeToGameStart, subscribeToPositions, subscribeToJoin, subscribeToLeave, subscribeToCodeWords, sendCodeWords, subscribeToShuffledDeck, sendShuffledDeck, subscribeToLockedDeck, sendLockedDeck } from "./sockets";
 
 const cardinalMap = {
 	"North": "East",
@@ -104,6 +104,44 @@ class Game extends React.Component {
 										});
 
 										console.log(this.state.gameStatus);
+
+										subscribeToLockedDeck((lockedDeck, playerPosition) => {
+											if (this.state.gameStatus === "Locking" && playerPosition === this.state.turn) {
+												this.setState({
+													deck: lockedDeck.map(card => arrayBufferToBuffer(card)),
+													turn: cardinalMap[this.state.turn]
+												});
+
+												if (this.state.turn === "North") {
+													this.setState({
+														gameStatus: "Dealing"
+													});
+
+													console.log(this.state.gameStatus);
+
+												} else if (this.state.turn === this.state.playerPosition) {
+													this.setState({
+														deck: mp.encryptDeck(
+  																mp.decryptDeck(this.state.deck, this.state.self.keyPairs[this.state.config.cardCount].privateKey),
+  																this.state.self.keyPairs.map(keyPair => keyPair.privateKey),
+													  	)
+													});
+
+													sendLockedDeck(this.state.deck);
+												}
+											}
+										});
+
+										if (this.state.turn === this.state.playerPosition) {
+											this.setState({
+												deck: mp.encryptDeck(
+  														mp.decryptDeck(this.state.deck, this.state.self.keyPairs[this.state.config.cardCount].privateKey),
+  														this.state.self.keyPairs.map(keyPair => keyPair.privateKey),
+												)
+											});
+
+											sendLockedDeck(this.state.deck);
+										}
 
 									} else if (this.state.turn === this.state.playerPosition) {
 										this.setState({

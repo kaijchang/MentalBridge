@@ -1,5 +1,5 @@
 import openSocket from "socket.io-client";
-var socket = openSocket();
+var socket = openSocket("http://localhost:8000");
 
 // subscribe
 
@@ -32,7 +32,13 @@ function subscribeToCodeWords(callback) {
 }
 
 function subscribeToShuffledDeck(callback) {
-	socket.on("shuffledDeck", (lockedDeck, playerPosition) => {
+	socket.on("shuffledDeck", (shuffledDeck, playerPosition) => {
+		callback(shuffledDeck, playerPosition);
+	});
+}
+
+function subscribeToLockedDeck(callback) {
+	socket.on("lockedDeck", (lockedDeck, playerPosition) => {
 		callback(lockedDeck, playerPosition);
 	});
 }
@@ -47,4 +53,8 @@ function sendShuffledDeck(shuffledDeck) {
 	socket.emit("shuffledDeck", shuffledDeck);
 }
 
-export { subscribeToGameStart, subscribeToPositions, subscribeToJoin, subscribeToLeave, subscribeToCodeWords, sendCodeWords, subscribeToShuffledDeck, sendShuffledDeck };
+function sendLockedDeck(lockedDeck) {
+	socket.emit("lockedDeck", lockedDeck);
+}
+
+export { subscribeToGameStart, subscribeToPositions, subscribeToJoin, subscribeToLeave, subscribeToCodeWords, sendCodeWords, subscribeToShuffledDeck, sendShuffledDeck, subscribeToLockedDeck, sendLockedDeck };
