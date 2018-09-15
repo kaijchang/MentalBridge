@@ -43,6 +43,12 @@ export function subscribeToLockedDeck(callback) {
 	});
 }
 
+export function subscribeToCardKeys(callback) {
+	socket.on("cardKeys", (cardKeys, playerPosition) => {
+		callback(cardKeys, playerPosition);
+	});
+}
+
 // send
 
 export function sendCodeWords(codeWords) {
@@ -55,4 +61,8 @@ export function sendShuffledDeck(shuffledDeck) {
 
 export function sendLockedDeck(lockedDeck) {
 	socket.emit("lockedDeck", lockedDeck);
+}
+
+export function sendCardKeys(cardKeys) {
+	socket.emit("cardKeys", cardKeys);
 }
