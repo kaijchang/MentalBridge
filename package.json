@@ -1,44 +1,30 @@
 {
   "name": "mental-bridge",
   "version": "0.1.0",
-  "description": "Bridge over Socket.io",
+  "private": true,
   "main": "app/app.js",
-  "scripts": {
-    "start": "node .",
-    "bundle": "browserify app/client.js -t scssify | uglifyjs > app/scripts/bundle.min.js",
-    "dev": "watchify app/client.js -t scssify --debug -v -o 'uglifyjs > app/scripts/bundle.min.js'"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kajchang/mental-bridge.git"
-  },
-  "author": "Kai Chang",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/kajchang/mental-bridge/issues"
-  },
-  "homepage": "https://github.com/kajchang/mental-bridge#readme",
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^5.3.1",
-    "express": "^4.16.3",
-    "socket.io": "^2.1.1"
-  },
-  "devDependencies": {
+    "arraybuffer-to-buffer": "^0.0.4",
     "bootstrap": "^4.1.3",
-    "arraybuffer-to-buffer": "0.0.4",
-    "jquery": "^3.3.1",
+    "express": "^4.16.3",
     "lodash.shuffle": "^4.2.0",
     "mental-poker": "^1.0.0",
-    "popper.js": "^1.14.4",
-    "socket.io-client": "^2.1.1",
-    "browserify": "^16.2.2",
-    "scssify": "^3.0.1",
-    "uglify-es": "^3.3.9",
-    "watchify": "^3.11.0"
+    "react": "^16.5.0",
+    "react-dom": "^16.5.0",
+    "react-scripts": "1.1.5",
+    "reactstrap": "^6.4.0",
+    "socket.io": "^2.1.1",
+    "socket.io-client": "^2.1.1"
   },
-  "browserify": {
-    "transform": [
-      "scssify"
-    ]
-  }
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "dev": "concurrently 'react-scripts start' 'node .'"
+  },
+  "devDependencies": {
+    "concurrently": "^4.0.1"
+  },
+  "proxy": "http://localhost:8000/"
 }
