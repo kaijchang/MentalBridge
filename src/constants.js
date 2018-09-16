@@ -12,7 +12,14 @@ export const partnerMap = {
 	"West": "East"
 }
 
-const cards = [];
+export const suitMap = {
+    "spades": "♠",
+    "hearts": "♥",
+    "diams": "♦",
+    "clubs": "♣"
+}
+
+export const cards = [];
 
 ["spades", "hearts", "clubs", "diams"].forEach(suit => {
     for (let rank = 14; rank >= 2; rank--) {
@@ -29,5 +36,3 @@ const cards = [];
         }
     }
 });
-
-export { cards };

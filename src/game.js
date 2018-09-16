@@ -7,8 +7,35 @@ import shuffle from "lodash.shuffle";
 import arrayBufferToBuffer from "arraybuffer-to-buffer";
 
 import { subscribeToGameStart, subscribeToPositions, subscribeToJoin, subscribeToLeave, subscribeToCodeWords, sendCodeWords, subscribeToShuffledDeck, sendShuffledDeck, subscribeToLockedDeck, sendLockedDeck, subscribeToCardKeys, sendCardKeys } from "./api";
-import { cardinalMap, partnerMap } from "./constants";
+import { cardinalMap, partnerMap, cards, suitMap} from "./constants";
 
+
+class PlayingCard extends React.Component {
+    render() {
+        const card = this.props.value === null ? <span className="card back">*</span> : <a className={ "card rank-" + cards[this.props.value][0] + " " + cards[this.props.value][1] }><span className="rank">{ cards[this.props.value][0] }</span><span className="suit">{ suitMap[cards[this.props.value][1]] }</span></a>;
+
+        return (
+            <li>
+                {card}
+            </li>
+        )
+    }
+}
+
+
+class Hand extends React.Component {
+    render() {
+        const cards = this.props.cards.reduce((boolean, card) => boolean && card === null, true) ? this.props.cards : this.props.cards.sort((a, b) => a - b);
+
+        return (
+            <div className="playingCards">
+                <ul className="hand">
+                    {cards.map((card, i) => <PlayingCard value={card} key={i}/>)}
+                </ul>
+            </div>
+        )
+    }
+}
 
 class Player extends React.Component {
     render() {
@@ -16,6 +43,9 @@ class Player extends React.Component {
             <Col>
                 <Card>
                     <CardBody>
+                        <Hand
+                            cards={this.props.cards}
+                        />
                     </CardBody>
                     <CardHeader>
                         {this.props.position} - {this.props.status}
@@ -41,21 +71,25 @@ export default class Game extends React.Component {
             North: {
                 codeWords: [],
                 cardKeys: [],
+                cards: [],
                 status: "Empty"
             },
             East: {
                 codeWords: [],
                 cardKeys: [],
+                cards: [],
                 status: "Empty"
             },
             South: {
                 codeWords: [],
                 cardKeys: [],
+                cards: [],
                 status: "Empty"
             },
             West: {
                 codeWords: [],
                 cardKeys: [],
+                cards: [],
                 status: "Empty"
             }
         };
@@ -220,7 +254,11 @@ export default class Game extends React.Component {
 
                     this.setState({
                         hand: hand,
-                        gameStatus: "Bidding"
+                        gameStatus: "Bidding",
+                        [this.state.playerPosition]: Object.assign({}, this.state[playerPosition], {cards: hand}),
+                        [partnerMap[this.state.playerPosition]]: Object.assign({}, this.state[partnerMap[this.state.playerPosition]], {cards: Array(13).fill(null)}),
+                        [cardinalMap[this.state.playerPosition]]: Object.assign({}, this.state[cardinalMap[this.state.playerPosition]], {cards: Array(13).fill(null)}),
+                        [partnerMap[cardinalMap[this.state.playerPosition]]]: Object.assign({}, this.state[partnerMap[cardinalMap[this.state.playerPosition]]], {cards: Array(13).fill(null)})
                     });
 
                     console.log(this.state.gameStatus);
@@ -247,12 +285,13 @@ export default class Game extends React.Component {
         const self_ = this.state.playerPosition;
 
         return (
-            <Container>
+            <Container fluid={true}>
                 <Row>
                     <Col></Col>
                     <Player
                         position={ partnerMap[self_] }
                         status={ this.state[partnerMap[self_]] === undefined ? "" : this.state[partnerMap[self_]].status }
+                        cards={ this.state[partnerMap[self_]] === undefined ? [] : this.state[partnerMap[self_]].cards }
                     />
                     <Col></Col>
                 </Row>
@@ -260,11 +299,13 @@ export default class Game extends React.Component {
                     <Player
                         position={ cardinalMap[self_] }
                         status={ this.state[cardinalMap[self_]] === undefined ? "" : this.state[cardinalMap[self_]].status }
+                        cards={ this.state[cardinalMap[self_]] === undefined ? [] : this.state[cardinalMap[self_]].cards }
                     />
                     <Col></Col>
                     <Player
                         position={ partnerMap[cardinalMap[self_]] }
                         status={ this.state[partnerMap[cardinalMap[self_]]] === undefined ? "" : this.state[partnerMap[cardinalMap[self_]]].status }
+                        cards={ this.state[partnerMap[cardinalMap[self_]]] === undefined ? [] : this.state[partnerMap[cardinalMap[self_]]].cards }
                     />
                 </Row>
                 <Row>
@@ -272,6 +313,7 @@ export default class Game extends React.Component {
                     <Player
                         position={ self_ }
                         status={ this.state[self_] === undefined ? "" : this.state[self_].status }
+                        cards={ this.state[self_] === undefined ? [] : this.state[self_].cards }
                     />
                     <Col></Col>
                 </Row>
