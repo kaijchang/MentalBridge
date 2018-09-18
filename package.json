@@ -2,7 +2,7 @@
   "name": "mental-bridge",
   "version": "0.1.0",
   "private": true,
-  "main": "app/app.js",
+  "main": "server/app.js",
   "dependencies": {
     "arraybuffer-to-buffer": "^0.0.4",
     "bootstrap": "^4.1.3",
