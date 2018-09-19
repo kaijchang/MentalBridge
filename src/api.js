@@ -49,6 +49,18 @@ export function subscribeToCardKeys(callback) {
 	});
 }
 
+export function subscribeToDealerCommitment(callback) {
+	socket.on("dealerCommitment", (dealerCommitment, playerPosition) => {
+		callback(dealerCommitment, playerPosition);
+	});
+}
+
+export function subscribeToRevealedCommitment(callback) {
+	socket.on("revealedCommitment", (revealedCommitment, playerPosition) => {
+		callback(revealedCommitment, playerPosition);
+	});
+}
+
 // send
 
 export function sendCodeWords(codeWords) {
@@ -65,4 +77,12 @@ export function sendLockedDeck(lockedDeck) {
 
 export function sendCardKeys(cardKeys) {
 	socket.emit("cardKeys", cardKeys);
+}
+
+export function sendDealerCommitment(dealerCommitment) {
+	socket.emit("dealerCommitment", dealerCommitment);
+}
+
+export function sendRevealedCommitment(revealedCommitment) {
+	socket.emit("revealedCommitment", revealedCommitment);
 }

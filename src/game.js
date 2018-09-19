@@ -5,8 +5,9 @@ import * as mp from "mental-poker";
 import shuffle from "lodash.shuffle";
 
 import arrayBufferToBuffer from "arraybuffer-to-buffer";
+import { sha256 } from "js-sha256";
 
-import { subscribeToGameStart, subscribeToPositions, subscribeToJoin, subscribeToLeave, subscribeToCodeWords, sendCodeWords, subscribeToShuffledDeck, sendShuffledDeck, subscribeToLockedDeck, sendLockedDeck, subscribeToCardKeys, sendCardKeys } from "./api";
+import * as api from "./api";
 import { cardinalMap, partnerMap, cards, suitMap} from "./constants";
 
 
@@ -16,7 +17,7 @@ class PlayingCard extends React.Component {
 
         return (
             <li>
-                {card}
+                { card }
             </li>
         )
     }
@@ -30,7 +31,7 @@ class Hand extends React.Component {
         return (
             <div className="playingCards">
                 <ul className="hand">
-                    {cards.map((card, i) => <PlayingCard value={card} key={i}/>)}
+                    { cards.map((card, i) => <PlayingCard value={card} key={i}/>) }
                 </ul>
             </div>
         )
@@ -68,33 +69,38 @@ export default class Game extends React.Component {
             hand: [],
             self: {},
             deck: [],
+            dealerSecret: "",
             North: {
                 codeWords: [],
                 cardKeys: [],
                 cards: [],
+                dealerCommitment: "",
                 status: "Empty"
             },
             East: {
                 codeWords: [],
                 cardKeys: [],
                 cards: [],
+                dealerCommitment: "",
                 status: "Empty"
             },
             South: {
                 codeWords: [],
                 cardKeys: [],
                 cards: [],
+                dealerCommitment: "",
                 status: "Empty"
             },
             West: {
                 codeWords: [],
                 cardKeys: [],
                 cards: [],
+                dealerCommitment: "",
                 status: "Empty"
             }
         };
 
-        subscribeToPositions((otherPlayers, playerPosition) => {
+        api.subscribeToPositions((otherPlayers, playerPosition) => {
             this.setState({
                 playerPosition: playerPosition,
                 [playerPosition]: Object.assign({}, this.state[playerPosition], {status: "Self"})
@@ -107,7 +113,7 @@ export default class Game extends React.Component {
             });
         });
 
-        subscribeToGameStart(() => {
+        api.subscribeToGameStart(() => {
             if (this.state.gameStatus === "Waiting for Players") {
                 this.setState({
                     gameStatus: "Sending Codewords",
@@ -116,12 +122,12 @@ export default class Game extends React.Component {
 
                 console.log(this.state.gameStatus);
 
-                sendCodeWords(this.state.self.cardCodewordFragments);
+                api.sendCodeWords(this.state.self.cardCodewordFragments);
             }
         });
 
 
-        subscribeToCodeWords((codeWords, playerPosition) => {
+        api.subscribeToCodeWords((codeWords, playerPosition) => {
             if (this.state.gameStatus === "Sending Codewords" && this.state[playerPosition].codeWords.length === 0) {
                 this.setState({
                     [playerPosition]: Object.assign({}, this.state[playerPosition], {codeWords: codeWords.map(codeWord => arrayBufferToBuffer(codeWord))})
@@ -141,14 +147,14 @@ export default class Game extends React.Component {
                             deck: mp.encryptDeck(shuffle(this.state.deck), this.state.self.keyPairs[this.state.config.cardCount].privateKey)
                         });
 
-                        sendShuffledDeck(this.state.deck);
+                        api.sendShuffledDeck(this.state.deck);
                     }
                 }
             }
         });
 
 
-        subscribeToShuffledDeck((shuffledDeck, playerPosition) => {
+        api.subscribeToShuffledDeck((shuffledDeck, playerPosition) => {
             if (this.state.gameStatus === "Shuffling" && playerPosition === this.state.turn) {
                 this.setState({
                     deck: shuffledDeck.map(card => arrayBufferToBuffer(card)),
@@ -170,7 +176,7 @@ export default class Game extends React.Component {
                             )
                         });
 
-                        sendLockedDeck(this.state.deck);
+                        api.sendLockedDeck(this.state.deck);
                     }
 
                 } else if (this.state.turn === this.state.playerPosition) {
@@ -178,12 +184,12 @@ export default class Game extends React.Component {
                         deck: mp.encryptDeck(shuffle(this.state.deck), this.state.self.keyPairs[this.state.config.cardCount].privateKey)
                     });
 
-                    sendShuffledDeck(this.state.deck);
+                    api.sendShuffledDeck(this.state.deck);
                 }
             }
         });
 
-        subscribeToLockedDeck((lockedDeck, playerPosition) => {
+        api.subscribeToLockedDeck((lockedDeck, playerPosition) => {
             if (this.state.gameStatus === "Locking" && playerPosition === this.state.turn) {
                 this.setState({
                     deck: lockedDeck.map(card => arrayBufferToBuffer(card)),
@@ -197,7 +203,7 @@ export default class Game extends React.Component {
 
                     console.log(this.state.gameStatus);
 
-                    sendCardKeys(this.state.self.keyPairs.map(key => {
+                    api.sendCardKeys(this.state.self.keyPairs.map(key => {
                         const indexOfPlayer = Object.keys(cardinalMap).indexOf(this.state.playerPosition);
                         const indexOfKey = this.state.self.keyPairs.indexOf(key);
 
@@ -216,23 +222,22 @@ export default class Game extends React.Component {
                         )
                     });
 
-                    sendLockedDeck(this.state.deck);
+                    api.sendLockedDeck(this.state.deck);
                 }
             }
         });
 
                                         
-        subscribeToCardKeys((cardKeys, playerPosition) => {
+        api.subscribeToCardKeys((cardKeys, playerPosition) => {
             if (this.state.gameStatus === "Dealing") {
                 this.setState({
                     [playerPosition]: Object.assign({}, this.state[playerPosition], {cardKeys: cardKeys.map(key => key === null ? null : arrayBufferToBuffer(key))})
                 });
 
                 if (this.state.North.cardKeys.length === 53 && this.state.East.cardKeys.length === 53 && this.state.South.cardKeys.length === 53 && this.state.West.cardKeys.length === 53) {
-                    const hand = [];
                     const indexOfPlayer = Object.keys(cardinalMap).indexOf(this.state.playerPosition);
 
-                    this.state.deck.filter(card => this.state.deck.indexOf(card) <= (indexOfPlayer + 1) * 13 - 1 && this.state.deck.indexOf(card) >= indexOfPlayer * 13).forEach(card => {
+                    const hand = this.state.deck.filter(card => this.state.deck.indexOf(card) <= (indexOfPlayer + 1) * 13 - 1 && this.state.deck.indexOf(card) >= indexOfPlayer * 13).map(card => {
                         const cardDecrypted = mp.decryptCard(
                             card,
                             Object.keys(cardinalMap).map(player => {
@@ -245,16 +250,15 @@ export default class Game extends React.Component {
                             })
                         );
 
-                        const codeWordIndex = mp.createDeck([this.state.North.codeWords, this.state.East.codeWords, this.state.South.codeWords, this.state.West.codeWords]).findIndex(cardCodeword =>
+                        return mp.createDeck([this.state.North.codeWords, this.state.East.codeWords, this.state.South.codeWords, this.state.West.codeWords]).findIndex(cardCodeword =>
                             cardCodeword.equals(cardDecrypted)
                         );
-
-                        hand.push(codeWordIndex);
                     });
 
                     this.setState({
                         hand: hand,
-                        gameStatus: "Bidding",
+                        gameStatus: "Determining Dealer",
+                        dealerSecret: Math.random() * 1e16,
                         [this.state.playerPosition]: Object.assign({}, this.state[playerPosition], {cards: hand}),
                         [partnerMap[this.state.playerPosition]]: Object.assign({}, this.state[partnerMap[this.state.playerPosition]], {cards: Array(13).fill(null)}),
                         [cardinalMap[this.state.playerPosition]]: Object.assign({}, this.state[cardinalMap[this.state.playerPosition]], {cards: Array(13).fill(null)}),
@@ -264,17 +268,77 @@ export default class Game extends React.Component {
                     console.log(this.state.gameStatus);
 
                     console.log(this.state.hand);
+
+                    api.sendDealerCommitment(sha256(String(this.state.dealerSecret)));
                 }
             }
         });
 
-        subscribeToJoin((pos) => {
+        api.subscribeToDealerCommitment((dealerCommitment, playerPosition) => {
+            if (this.state.gameStatus === "Determining Dealer") {
+                this.setState({
+                    [playerPosition]: Object.assign({}, this.state[playerPosition], {dealerCommitment: dealerCommitment})
+                });
+
+                if (this.state.North.dealerCommitment.length === 64 && this.state.East.dealerCommitment.length === 64 && this.state.South.dealerCommitment.length === 64 && this.state.West.dealerCommitment.length === 64) {
+                    this.setState({
+                        gameStatus: "Revealing Commitments"
+                    });
+
+                    console.log(this.state.gameStatus);
+
+                    api.sendRevealedCommitment(this.state.dealerSecret);
+                }
+            }
+        });
+
+        api.subscribeToRevealedCommitment((revealedCommitment, playerPosition) => {
+            if (this.state.gameStatus === "Revealing Commitments" && sha256(String(revealedCommitment)) === this.state[playerPosition].dealerCommitment) {
+                this.setState({
+                    [playerPosition]: Object.assign({}, this.state[playerPosition], {dealerCommitment: revealedCommitment})
+                });
+
+                if (typeof(this.state.North.dealerCommitment) === "number" && typeof(this.state.East.dealerCommitment) === "number" && typeof(this.state.South.dealerCommitment) === "number" && typeof(this.state.West.dealerCommitment) === "number") {
+                    this.setState({
+                        gameStatus: "Bidding"
+                    });
+
+                    console.log(this.state.gameStatus);
+
+                    const magicNumber = Object.keys(cardinalMap).map(pos => this.state[pos].dealerCommitment).reduce((sum, revealedCommitment) => sum += revealedCommitment, 0) % 1e16;
+
+                    console.log(magicNumber);
+
+                    if (magicNumber >= 0 && magicNumber <= 2.5e15) {
+                        this.setState({
+                            turn: "North"
+                        });
+                    } else if (magicNumber > 2.5e15 && magicNumber <= 5e15) {
+                        this.setState({
+                            turn: "East"
+                        });
+                    } else if (magicNumber > 5e15 && magicNumber <= 7.5e15) {
+                        this.setState({
+                            turn: "South"
+                        });
+                    } else if (magicNumber > 7.5e15 && magicNumber <= 1e16) {
+                        this.setState({
+                            turn: "West"
+                        });
+                    }
+
+                    console.log(this.state.turn + " Bids First");
+                }
+            }
+        });
+
+        api.subscribeToJoin(pos => {
             this.setState({
                 [pos]: Object.assign({}, this.state[pos], {status: "Occupied"})
             });
         });
 
-        subscribeToLeave((pos) => {
+        api.subscribeToLeave(pos => {
             this.setState({
                 [pos]: Object.assign({}, this.state[pos], {status: "Empty"})
             });

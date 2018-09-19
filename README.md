@@ -8,8 +8,11 @@ The game has no resistance against malicious players sending malformed messages 
 
 This project has a minimal backend in the form of a NodeJS server to synchronize the players and relay game messages through Socket.IO, but the server never holds secure information. It could feasibly be replaced in the future by a smart contract that could also implement escrows to protect against dropped/malicious players.
 
-The frontend is written in React because the client-side has to store all of the game state and React makes it easy to do this, while writing it the first time in jQuery wasn't optimal. Additionally, I wanted to learn a new framework.
+The frontend is written in React because the client-side has to store all of the game state and React makes it easy to do this, while writing it the first time in jQuery wasn't optimal and I also wanted to learn a new framework.
 
+The implementation uses the basic principles of mental poker and applies them to bridge in order to deal the cards collision-free and without anyone or the server knowing anyone elses cards. Deciding the first bidder is done through a commitment scheme where each user commits a random number and the sum of the numbers mod the range of the random numbers determines the first bidder. 
+
+(I don't know if it's best to use numbers because someone could choose artifically high or low so the result will fall in their desired range, probably better to commit a boolean + a nonce, and the odd one out goes first, and it's retried if it splits two two.)
 
 ## Installation
 
